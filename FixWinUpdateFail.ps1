@@ -17,20 +17,29 @@
     12/02/2025
 
 .VERSION
-    0.1.0
+    0.2.0
 
 .NOTES
     Remember to set the execution policy to allow the script to run.
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 #>
 
-Stop-Service -Name wuauserv -Force
-Stop-Service -Name bits -Force
-Stop-Service -Name cryptsvc -Force
-Stop-Service -Name msiserver -Force
-Remove-Item -Path "C:\Windows\SoftwareDistribution\*" -Recurse -Force
+# Set wuauserv to disabled so it does not auto restart
+Set-Service -Name wuauserv -StartupType Disabled
+
+# Stop Windows Update and related services
+$winUpdServs = "wuauserv","bits","cryptsvc","msiserver"
+foreach ($service in $winUpdServs) {
+    Stop-Service -Name $service -Force -Verbose
+}
+
+# Recursively remove all items in SoftwareDistribution directory.
+Get-ChildItem -Path "C:\Windows\SoftwareDistribution\" -Recurse | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+# Set wuauserv to start automatically
 Set-Service -Name wuauserv -StartupType Automatic
-Start-Service -Name wuauserv
-Start-Service -Name bits
-Start-Service -Name cryptsvc
-Start-Service -Name msiserver
+
+# Start Windows Update and related services
+foreach ($service in $winUpdServs) {
+    Start-Service -Name $service -Verbose
+}
