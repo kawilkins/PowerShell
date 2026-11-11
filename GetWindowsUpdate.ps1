@@ -26,10 +26,8 @@
 
 # Set ErrorAction preference
 $ErrorActionPreference = 'SilentlyContinue'
-
-# Analyze and defrag HDD
-Optimize-Volume -DriveLetter C -Analyze -Defrag
+$VerbosePreference = 'SilentlyContinue'
 
 # Get and install windows updates
 Get-WindowsUpdate -ForceDownload
-Install-WindowsUpdate -ForceInstall -AcceptAll -AutoReboot
+Install-WindowsUpdate -ForceInstall -AcceptAll -AutoReboot | Format-Table ComputerName,Status,KB,Title -AutoSize
